@@ -70,7 +70,7 @@ ollama pull qwen2.5:3b
 Clone the repository:
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/sourabh11001/DevDocs-AI.git
 cd backend
 ```
 
