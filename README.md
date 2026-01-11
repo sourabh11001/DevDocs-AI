@@ -160,9 +160,10 @@ GenAI Developer | Data Analyst | Python Engineer
 
 ---
 
-## ⭐ Final Note
+## 🔮 Future Roadmap
 
-This is not a toy project.  
-This is a **real GenAI system** built from scratch.
+- [ ] **Dockerization:** Containerize the application for one-click deployment.
+- [ ] **Chat History:** Implement persistent conversation storage using SQLite.
+- [ ] **Multi-Model Support:** Add UI selector to switch between `qwen2.5` and `mistral` models dynamically.
+- [ ] **File Support:** Extend indexing to support .docx and .pptx formats.
 
-If you are learning RAG, embeddings, or local LLM deployment, this project is a perfect reference implementation.
