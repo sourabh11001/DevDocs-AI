@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DevDocs AI</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        background: '#131314', 
+                        surface: '#1e1f20',    
+                        surfaceHover: '#2d2e30',
+                        accent: '#a8c7fa',      
+                        primary: '#0b57d0',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.4s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #444746; 
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5e5e5e; 
+        }
+
+        /* Typography & Markdown Tweaks */
+        body {
+            font-feature-settings: "ss01", "ss02";
+        }
+        
+        .prose pre {
+            background-color: #1e1f20 !important;
+            border: 1px solid #444746;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        .prose code {
+            color: #e3e3e3;
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255,255,255,0.1);
+            padding: 0.1em 0.3em;
+            border-radius: 0.3em;
+            font-size: 0.85em;
+            white-space: pre-wrap;
+        }
+        .prose pre code {
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            color: inherit;
+            font-size: 0.875em;
+            white-space: pre;
+        }
+        .prose p {
+            margin-bottom: 1rem;
+            line-height: 1.7;
+            color: #e3e3e3;
+        }
+        .prose ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: #c4c7c5;
+        }
+        .prose strong {
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        /* Loading Dots Animation */
+        .typing-dot {
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-background text-gray-200 font-sans h-[100dvh] flex overflow-hidden selection:bg-primary/30">
+
+    <div id="overlay" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden backdrop-blur-sm transition-opacity" onclick="toggleSidebar()"></div>
+
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-[280px] bg-[#1e1f20] transform transition-transform duration-300 ease-[cubic-bezier(0.2,0,0,1)] -translate-x-full lg:translate-x-0 lg:static lg:block flex flex-col border-r border-[#444746]/30">
+        
+        <div class="p-5 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center gap-3 opacity-90 hover:opacity-100 transition-opacity cursor-default">
+                <i data-lucide="library" class="w-6 h-6 text-accent"></i>
+                <h1 class="font-medium text-lg tracking-tight text-white">DevDocs AI</h1>
+            </div>
+            <button class="lg:hidden text-gray-400 hover:text-white transition-colors" onclick="toggleSidebar()">
+                <i data-lucide="panel-left-close" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-3 py-2 space-y-6">
+            
+            <div class="space-y-2">
+                <div class="px-2 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Source
+                </div>
+                
+                <div class="bg-[#28292a] p-3 rounded-2xl border border-[#444746]/30 group hover:border-[#444746] transition-colors">
+                    <label class="block text-xs font-medium text-gray-300 mb-2 ml-1">Document Folder</label>
+                    <div class="relative mb-3">
+                        <input id="pathInput" type="text" placeholder="/path/to/docs" 
+                            class="w-full bg-[#131314] border border-transparent focus:border-accent text-gray-200 text-sm rounded-lg focus:ring-0 block p-2.5 pl-9 placeholder-gray-600 transition-all font-mono">
+                        <i data-lucide="folder-open" class="absolute left-3 top-3 w-4 h-4 text-gray-500"></i>
+                    </div>
+                    
+                    <button onclick="indexDocs()" id="indexBtn"
+                        class="w-full text-[#131314] bg-accent hover:bg-[#8eaff5] font-medium rounded-full text-sm px-4 py-2.5 transition-all flex items-center justify-center gap-2 group-hover:shadow-md">
+                        <span>Index Folder</span>
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    </button>
+
+                    <div id="indexStatus" class="mt-3 text-xs text-center text-gray-400 min-h-[1.5em] transition-all duration-300 font-medium"></div>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                 <div class="px-2 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    Status
+                </div>
+                <div class="px-3 py-2 rounded-lg hover:bg-[#28292a] transition-colors cursor-default">
+                    <div class="flex items-center gap-3">
+                        <div class="relative flex h-2.5 w-2.5">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                        </div>
+                        <span class="text-sm text-gray-300">Engine: <span id="backendStatus" class="text-white">Checking...</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-[#444746]/30 flex-shrink-0">
+            <button onclick="window.location.reload()" class="flex items-center gap-3 w-full p-3 hover:bg-[#28292a] rounded-xl transition-all text-left text-sm text-gray-400 hover:text-white group">
+                <i data-lucide="trash-2" class="w-4 h-4 group-hover:text-red-400 transition-colors"></i>
+                <span>Clear Context</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative min-w-0 h-full">
+        
+        <header class="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-[#444746]/30 bg-[#131314]/80 backdrop-blur-md sticky top-0 z-10">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebar()" class="lg:hidden text-gray-400 hover:text-white transition-colors">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                
+                <div class="flex items-center gap-2 px-2 py-1 rounded-lg cursor-pointer hover:bg-[#2d2e30] transition-colors group">
+                    <span class="font-medium text-gray-200">DevDocs <span class="text-gray-500">Local</span></span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-gray-500 group-hover:text-gray-300"></i>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button class="hidden sm:flex items-center justify-center p-2 text-gray-400 hover:text-white hover:bg-[#2d2e30] rounded-full transition-colors">
+                   <i data-lucide="share" class="w-4 h-4"></i>
+                </button>
+                 <div class="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-bold border border-[#444746]/50 shadow-inner">
+                    AI
+                </div>
+            </div>
+        </header>
+
+        <div id="messages" class="flex-1 overflow-y-auto px-4 py-6 md:px-0 scroll-smooth">
+            <div class="max-w-3xl mx-auto flex flex-col gap-6 pb-48"> 
+                
+                <div class="flex flex-col items-center justify-center mt-10 md:mt-20 text-center space-y-6 opacity-0 animate-fade-in" id="welcome-screen" style="animation-delay: 0.1s; animation-fill-mode: forwards;">
+                    <div class="relative group">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+                        <div class="relative bg-[#1e1f20] p-6 rounded-full border border-[#444746]/50">
+                            <i data-lucide="cpu" class="w-10 h-10 text-accent"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2 max-w-lg px-4">
+                        <h2 class="text-2xl md:text-4xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                            Local Knowledge Base
+                        </h2>
+                        <p class="text-gray-400 text-base md:text-lg">
+                            Ready to analyze your documents. Index a folder to begin retrieval augmented generation.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-xl mt-4 md:mt-8 px-2">
+                        <div class="p-4 rounded-xl border border-[#444746]/30 bg-[#1e1f20]/50 hover:bg-[#1e1f20] transition-colors cursor-default text-left">
+                            <div class="flex items-center gap-2 mb-1 text-accent">
+                                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                                <span class="text-xs font-semibold uppercase">Privacy First</span>
+                            </div>
+                            <p class="text-sm text-gray-400">Your documents are processed locally. No data leaves your machine.</p>
+                        </div>
+                          <div class="p-4 rounded-xl border border-[#444746]/30 bg-[#1e1f20]/50 hover:bg-[#1e1f20] transition-colors cursor-default text-left">
+                            <div class="flex items-center gap-2 mb-1 text-accent">
+                                <i data-lucide="zap" class="w-4 h-4"></i>
+                                <span class="text-xs font-semibold uppercase">Strict Context</span>
+                            </div>
+                            <p class="text-sm text-gray-400">Answers are derived strictly from the indexed files in your folder.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="absolute bottom-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-t from-[#131314] via-[#131314] to-transparent z-20">
+            <div class="max-w-3xl mx-auto">
+                <div class="relative group">
+                    <div class="absolute -inset-0.5 bg-gradient-to-r from-accent/20 to-purple-500/20 rounded-full blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                    
+                    <div class="relative flex items-end gap-2 bg-[#1e1f20] border border-[#444746]/50 rounded-[2rem] p-2 pr-2 pl-6 shadow-2xl">
+                        
+                        <textarea 
+                            id="questionInput" 
+                            rows="1"
+                            placeholder="Ask about your documents..." 
+                            class="w-full bg-transparent text-gray-100 placeholder-gray-500 text-[1rem] py-3 focus:outline-none resize-none max-h-32 scrollbar-hide font-sans"
+                            onkeydown="handleKeydown(event)"
+                            oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'"></textarea>
+                        
+                        <button onclick="askQuestion()" 
+                            class="p-2.5 m-1 bg-white hover:bg-gray-200 text-[#131314] rounded-full transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
+                            <i data-lucide="arrow-up" class="w-5 h-5 stroke-[2.5px]"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <p class="text-[11px] text-gray-500 font-medium">DevDocs AI can make mistakes. Verify code and sources.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+        
+        // --- State & UI Logic ---
+
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const messagesScroll = document.getElementById('messages'); // The scrollable container
+        const messagesContent = messagesScroll.firstElementChild; // The content wrapper
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const questionInput = document.getElementById('questionInput');
+        const backendStatus = document.getElementById('backendStatus');
+
+        function toggleSidebar() {
+            const isClosed = sidebar.classList.contains('-translate-x-full');
+            if (isClosed) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function handleKeydown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                askQuestion();
+            }
+        }
+
+        function createMessageElement(html, type) {
+            const wrapper = document.createElement('div');
+            const isUser = type === 'user';
+            
+            wrapper.className = `flex w-full ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`;
+            
+            if (isUser) {
+                // User Message Style
+                const content = document.createElement('div');
+                content.className = "bg-[#2d2e30] text-gray-100 px-5 py-2.5 rounded-[2rem] max-w-[85%] text-[0.95rem] leading-relaxed border border-[#444746]/30 break-words";
+                content.innerHTML = html;
+                wrapper.appendChild(content);
+            } else {
+                // Bot Message Style
+                const innerContainer = document.createElement('div');
+                innerContainer.className = "flex gap-4 max-w-full lg:max-w-[95%]";
+
+                const avatar = document.createElement('div');
+                avatar.className = "flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center mt-1";
+                avatar.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4 text-white"></i>';
+                
+                const content = document.createElement('div');
+                content.className = "prose prose-invert max-w-none min-w-0"; 
+                content.innerHTML = html;
+
+                innerContainer.appendChild(avatar);
+                innerContainer.appendChild(content);
+                wrapper.appendChild(innerContainer);
+                
+                // Re-init icons inside the new message
+                lucide.createIcons({ root: wrapper });
+            }
+
+            return wrapper;
+        }
+
+        function showTypingIndicator() {
+            const wrapper = document.createElement('div');
+            wrapper.id = 'typing-indicator';
+            wrapper.className = 'flex w-full justify-start animate-fade-in';
+            
+            wrapper.innerHTML = `
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center mt-1">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
+                    </div>
+                    <div class="flex items-center gap-1 h-8 mt-1 px-2">
+                        <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            messagesContent.appendChild(wrapper); // Append to the inner content wrapper
+            lucide.createIcons({ root: wrapper });
+            scrollToBottom();
+            return wrapper;
+        }
+
+        function removeTypingIndicator() {
+            const el = document.getElementById('typing-indicator');
+            if (el) el.remove();
+        }
+
+        function scrollToBottom() {
+            // Scroll safely to the bottom of the container
+            messagesScroll.scrollTo({
+                top: messagesScroll.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        // --- Core Functionality ---
+
+        async function indexDocs() {
+            const path = document.getElementById("pathInput").value;
+            const btn = document.getElementById("indexBtn");
+            const status = document.getElementById("indexStatus");
+            
+            if (!path) {
+                status.innerHTML = "<span class='text-red-400'>Please enter a path</span>";
+                return;
+            }
+
+            // UI Loading State
+            const originalBtnContent = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Indexing...`;
+            btn.classList.add('opacity-80', 'cursor-wait');
+            lucide.createIcons({ root: btn });
+            btn.disabled = true;
+            status.innerHTML = "";
+
+            try {
+                // Fixed: Send JSON body instead of URL parameters
+                const res = await fetch("http://127.0.0.1:8000/index", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ path: path })
+                });
+                
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    throw new Error(errorText || "Failed to connect");
+                }
+
+                const data = await res.json();
+                status.innerHTML = `<span class="text-green-400 flex items-center justify-center gap-1"><i data-lucide="check-circle" class="w-3 h-3"></i> Indexing started...</span>`;
+                lucide.createIcons({ root: status });
+                
+                // Auto close on mobile after success
+                if(window.innerWidth < 1024) toggleSidebar();
+
+            } catch (err) {
+                console.warn("Backend error:", err);
+                status.innerHTML = `<span class="text-yellow-400 flex items-center justify-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> Backend Offline/Error</span>`;
+                lucide.createIcons({ root: status });
+            } finally {
+                btn.innerHTML = originalBtnContent;
+                btn.classList.remove('opacity-80', 'cursor-wait');
+                lucide.createIcons({ root: btn });
+                btn.disabled = false;
+            }
+        }
+
+        async function askQuestion() {
+            const q = questionInput.value.trim();
+            if (!q) return;
+
+            // Remove welcome screen if present
+            if (welcomeScreen && welcomeScreen.parentNode) {
+                welcomeScreen.remove();
+            }
+
+            // Add User Message
+            messagesContent.appendChild(createMessageElement(q.replace(/\n/g, '<br>'), 'user'));
+            questionInput.value = "";
+            questionInput.style.height = 'auto';
+            scrollToBottom();
+
+            // Add Bot Typing
+            showTypingIndicator();
+
+            try {
+                // Try real fetch
+                const res = await fetch("http://127.0.0.1:8000/ask", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question: q })
+                });
+
+                if (!res.ok) throw new Error("Backend unavailable");
+
+                const data = await res.json();
+                removeTypingIndicator();
+                
+                // Render Markdown response
+                const htmlContent = marked.parse(data.answer);
+                const msgNode = createMessageElement(htmlContent, 'bot');
+                messagesContent.appendChild(msgNode);
+                
+                // Apply syntax highlighting
+                msgNode.querySelectorAll('pre code').forEach((el) => {
+                    hljs.highlightElement(el);
+                });
+
+            } catch (err) {
+                // DEMO MODE SIMULATION
+                await new Promise(r => setTimeout(r, 1200));
+                removeTypingIndicator();
+                
+                const demoResponse = `
+I cannot connect to your local backend (port 8000), so I am running in **Demo Mode**.
+
+If this were real, I would have searched your docs for: "_${q}_".
+
+Here is a sample code snippet representing how I would answer:
+
+\`\`\`python
+def search_docs(query):
+    # This is a demo function
+    results = vector_db.similarity_search(query)
+    return results
+\`\`\`
+
+Ensure your Python server is running to get real answers!
+`;
+                const htmlContent = marked.parse(demoResponse);
+                const msgNode = createMessageElement(htmlContent, 'bot');
+                messagesContent.appendChild(msgNode);
+                
+                msgNode.querySelectorAll('pre code').forEach((el) => {
+                    hljs.highlightElement(el);
+                });
+            }
+            
+            scrollToBottom();
+        }
+
+        // Check backend status on load
+        (async () => {
+            try {
+                // Fixed: Check /health instead of /
+                await fetch("http://127.0.0.1:8000/health", { method: 'GET', signal: AbortSignal.timeout(1000) });
+                backendStatus.innerText = "Online";
+                backendStatus.className = "text-green-400 font-medium";
+            } catch (e) {
+                backendStatus.innerText = "Offline (Demo)";
+                backendStatus.className = "text-yellow-500 font-medium";
+            }
+        })();
+
+    </script>
+</body>
+</html>
